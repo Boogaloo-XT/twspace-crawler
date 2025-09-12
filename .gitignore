@@ -1,0 +1,15 @@
+node_modules/
+dist/
+logs/
+download/
+.vscode/
+.idea/
+.cache/
+.media/
+.tmp/
+
+.env
+config.json
+config.yaml
+
+!example/**/config.yaml
