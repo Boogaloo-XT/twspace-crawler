@@ -8,6 +8,7 @@
 import { tokenManager } from "./modules/TokenManager";
 import { mainManager } from "./modules/MainManager";
 import { SpaceDownloader } from "./modules/SpaceDownloader";
+import { SpaceWatcher } from "./modules/SpaceWatcher";
 import { TwitterUtil } from "./utils/TwitterUtil";
 import { Util } from "./utils/Util";
 import { configManager } from "./modules/ConfigManager";
@@ -28,6 +29,7 @@ export interface SpaceDownloadOptions {
   playlistUrl?: string;
   filename?: string;
   subDir?: string;
+  onComplete?: (spaceId: string) => void;
   metadata?: Record<string, any>;
 }
 
@@ -36,6 +38,7 @@ export interface SpaceDownloadResult {
   filename?: string;
   filePath?: string;
   error?: string;
+  watcher?: SpaceWatcher; // SpaceWatcher instance for event listening
 }
 
 /**
@@ -117,13 +120,22 @@ export class TwspaceCrawler {
 
     try {
       // Start the space watcher
-      mainManager.addSpaceWatcher(spaceId);
+      const watcher = mainManager.addSpaceWatcher(spaceId);
+
+      // Set up event listener for download completion
+      if (watcher && options.onComplete) {
+        watcher.on("complete", () => {
+          logger.info(`Download completed for Space ID: ${spaceId}`);
+          options.onComplete?.(spaceId);
+        });
+      }
 
       logger.info(`Started Space watcher for ID: ${spaceId}`);
 
       return {
         success: true,
         filename: `Space_${spaceId}`,
+        watcher: watcher, // Return watcher for manual event listening
       };
     } catch (error) {
       logger.error("downloadBySpaceId error:", error);
