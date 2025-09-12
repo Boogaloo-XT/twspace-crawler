@@ -122,25 +122,30 @@ export class TwspaceCrawler {
       // Start the space watcher
       const watcher = mainManager.addSpaceWatcher(spaceId);
 
-      // Set up event listener for download completion
-      if (watcher && options.onComplete) {
+      // Set up event listener for download completion immediately
+      if (options.onComplete) {
         logger.info(
           `Setting up complete event listener for Space ID: ${spaceId}`
         );
-        watcher.on("complete", () => {
-          logger.info(`🎉 Download completed for Space ID: ${spaceId}`);
-          console.log(`🎉 下载完成！Space ID: ${spaceId}`);
-          options.onComplete?.(spaceId);
-        });
+        console.log(`🔧 设置完成回调监听器 for Space ID: ${spaceId}`);
+
+        // Use setTimeout to ensure the listener is set up after the current call stack
+        setTimeout(() => {
+          watcher.on("complete", () => {
+            logger.info(`🎉 Download completed for Space ID: ${spaceId}`);
+            console.log(`🎉 下载完成！Space ID: ${spaceId}`);
+            options.onComplete?.(spaceId);
+          });
+        }, 0);
       }
 
-      // Also set up error event listener for debugging
-      if (watcher) {
-        watcher.on("error", (error) => {
+      // Set up error event listener for debugging
+      setTimeout(() => {
+        watcher.on("error", (error: any) => {
           logger.error(`Download error for Space ID ${spaceId}:`, error);
           console.log(`❌ 下载出错！Space ID: ${spaceId}, Error:`, error);
         });
-      }
+      }, 0);
 
       logger.info(`Started Space watcher for ID: ${spaceId}`);
 
