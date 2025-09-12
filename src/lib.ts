@@ -124,9 +124,21 @@ export class TwspaceCrawler {
 
       // Set up event listener for download completion
       if (watcher && options.onComplete) {
+        logger.info(
+          `Setting up complete event listener for Space ID: ${spaceId}`
+        );
         watcher.on("complete", () => {
-          logger.info(`Download completed for Space ID: ${spaceId}`);
+          logger.info(`🎉 Download completed for Space ID: ${spaceId}`);
+          console.log(`🎉 下载完成！Space ID: ${spaceId}`);
           options.onComplete?.(spaceId);
+        });
+      }
+
+      // Also set up error event listener for debugging
+      if (watcher) {
+        watcher.on("error", (error) => {
+          logger.error(`Download error for Space ID ${spaceId}:`, error);
+          console.log(`❌ 下载出错！Space ID: ${spaceId}, Error:`, error);
         });
       }
 
