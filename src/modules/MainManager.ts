@@ -13,10 +13,10 @@ class MainManager {
     this.logger = baseLogger.child({ label: "[MainManager]" });
   }
 
-  public addSpaceWatcher(spaceId: string): SpaceWatcher {
+  public addSpaceWatcher(spaceId: string) {
     const watchers = this.spaceWatchers;
     if (watchers[spaceId]) {
-      return watchers[spaceId];
+      return;
     }
     const watcher = new SpaceWatcher(spaceId);
     watchers[spaceId] = watcher;
@@ -29,7 +29,6 @@ class MainManager {
       delete watchers[spaceId];
       this.logger.debug(`SpaceWatcher@${spaceId} delete`);
     });
-    return watcher;
   }
 
   public addUserWatcher(username: string) {
