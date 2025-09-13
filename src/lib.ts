@@ -106,18 +106,70 @@ export class TwspaceCrawler {
     }
   }
 
-  /**
-   * Download a Space by Space ID
-   */
+  // /**
+  //  * Download a Space by Space ID
+  //  */
+  // public async downloadBySpaceId(
+  //   spaceId: string,
+  //   options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {}
+  // ): Promise<SpaceDownloadResult> {
+  //   this.ensureInitialized();
+
+  //   try {
+  //     // Start the space watcher
+  //     mainManager.addSpaceWatcher(spaceId);
+
+  //     logger.info(`Started Space watcher for ID: ${spaceId}`);
+
+  //     return {
+  //       success: true,
+  //       filename: `Space_${spaceId}`,
+  //     };
+  //   } catch (error) {
+  //     logger.error("downloadBySpaceId error:", error);
+  //     return {
+  //       success: false,
+  //       error: error instanceof Error ? error.message : String(error),
+  //     };
+  //   }
+  // }
+
   public async downloadBySpaceId(
     spaceId: string,
-    options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {}
+    options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {},
+    onComplete?: (result: {
+      success: boolean;
+      filename?: string;
+      error?: string;
+    }) => void
   ): Promise<SpaceDownloadResult> {
     this.ensureInitialized();
 
     try {
-      // Start the space watcher
-      mainManager.addSpaceWatcher(spaceId);
+      // 如果有回调，需要直接创建 SpaceWatcher 来监听事件
+      if (onComplete) {
+        const { SpaceWatcher } = await import("./modules/SpaceWatcher");
+        const watcher = new SpaceWatcher(spaceId);
+
+        watcher.once("complete", () => {
+          onComplete({
+            success: true,
+            filename: `Space_${spaceId}`,
+          });
+        });
+
+        watcher.on("error", (error) => {
+          onComplete({
+            success: false,
+            error: error.message,
+          });
+        });
+
+        watcher.watch();
+      } else {
+        // 没有回调时使用原来的方式
+        mainManager.addSpaceWatcher(spaceId);
+      }
 
       logger.info(`Started Space watcher for ID: ${spaceId}`);
 
