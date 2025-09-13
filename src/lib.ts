@@ -81,28 +81,73 @@ export class TwspaceCrawler {
   /**
    * Download a Space by URL
    */
+  // public async downloadByUrl(
+  //   spaceUrl: string,
+  //   options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {}
+  // ): Promise<SpaceDownloadResult> {
+  //   this.ensureInitialized();
+
+  //   try {
+  //     const spaceId = TwitterUtil.getSpaceId(spaceUrl);
+  //     if (!spaceId) {
+  //       return {
+  //         success: false,
+  //         error: `Invalid Space URL: ${spaceUrl}`,
+  //       };
+  //     }
+
+  //     return await this.downloadBySpaceId(spaceId, options);
+  //   } catch (error) {
+  //     logger.error("downloadByUrl error:", error);
+  //     return {
+  //       success: false,
+  //       error: error instanceof Error ? error.message : String(error),
+  //     };
+  //   }
+  // }
   public async downloadByUrl(
     spaceUrl: string,
-    options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {}
+    options: Omit<SpaceDownloadOptions, "spaceUrl" | "spaceId"> = {},
+    onComplete?: (result: {
+      success: boolean;
+      filename?: string;
+      error?: string;
+    }) => void
   ): Promise<SpaceDownloadResult> {
+    console.log("downloadByUrl111111111111111111111111111111111111");
     this.ensureInitialized();
 
     try {
       const spaceId = TwitterUtil.getSpaceId(spaceUrl);
       if (!spaceId) {
-        return {
+        const errorResult = {
           success: false,
           error: `Invalid Space URL: ${spaceUrl}`,
         };
+
+        // 如果有回调，也要调用回调通知错误
+        if (onComplete) {
+          onComplete({ success: false, error: errorResult.error });
+        }
+
+        return errorResult;
       }
 
-      return await this.downloadBySpaceId(spaceId, options);
+      // 将回调传递给 downloadBySpaceId
+      return await this.downloadBySpaceId(spaceId, options, onComplete);
     } catch (error) {
       logger.error("downloadByUrl error:", error);
-      return {
+      const errorResult = {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       };
+
+      // 错误情况下也要调用回调
+      if (onComplete) {
+        onComplete({ success: false, error: errorResult.error });
+      }
+
+      return errorResult;
     }
   }
 
